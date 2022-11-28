@@ -65,6 +65,20 @@ return botui.message.add({ // show a message
     })
 };
 
+fetch('http://127.0.0.1:5000/aiResponse', {
+    method: 'POST',
+    headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+    },
+    body: JSON.stringify({ "query": "I feel sad" })
+}).then(function (response) {
+  return response.json();
+}).then(function (text) {
+  console.log('POST response:');
+  console.log(text.response); 
+});
 
 greet()
 
