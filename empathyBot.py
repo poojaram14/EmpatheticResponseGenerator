@@ -18,7 +18,7 @@ class EmpathyResponse:
     def __init__(self):
         self.tokenizer = AutoTokenizer.from_pretrained("microsoft/GODEL-v1_1-base-seq2seq")
         self.model = AutoModelForSeq2SeqLM.from_pretrained("microsoft/GODEL-v1_1-base-seq2seq")
-        self.history = ['agent: hi']
+        self.history = ['hi']
         # mi_raw = pd.read_csv("MI_data\dataset.csv")
         # mi_cleaned = mi_raw[['topic','interlocutor','utterance_text']]
         # mi_cleaned_just_therapist_responses = mi_cleaned.loc[mi_cleaned['interlocutor'] == 'therapist']
@@ -42,16 +42,26 @@ class EmpathyResponse:
         dialog = [
             query
         ]
-        instruction = 'given a dialog context, you need to response empathically.'
+        instruction = 'given a conversation, you need to give the next empathetic response.'
         # instruction = raw_instruction + self.history
         min_length = 8
         max_length = 64
         top_p = 0.9
         knowledge = ''.join(self.history)
-        self.history.append('u: '+query)
+        self.history.append(query)
         response = self.generate(instruction, knowledge, dialog,
                             top_p, min_length, max_length)
-        self.history.append('a: '+response)
+        
 
-        print(self.history)
-        return response
+        print("conversation history: ",self.history)
+        # return response
+
+        print("This is the AI's response: ",response)
+        send_ai_response = input("Do you want to submit it?(Y/n):")
+        if(send_ai_response == 'Y' or send_ai_response == 'y'):
+            self.history.append(response)
+            return response
+        else:
+            crowd_response = input("crowd choice: ")
+            self.history.append(crowd_response)
+            return crowd_response

@@ -1,7 +1,7 @@
 var botui = new BotUI('genetic-counselor');
 
 //global variables
-let user_name = '', time_of_day = 'morning', feeling = 3, discussed_privacy = false, has_kids = false, reason = '',scale = 0
+let user_response='',user_name = '', time_of_day = 'morning', feeling = 3, discussed_privacy = false, has_kids = false, reason = '',scale = 0, send_back = 'empty'
 
 function date(){
   var date = new Date();
@@ -47,38 +47,46 @@ return botui.message.add({ // show a message
       loading: true,
       delay: 1000,
       type: 'text',
-      content:'I know this can seem a little strange, I hope you are comfortable. '
+      content:'Hi'
       })
-    }).then(async function (){
-      const ignore = await  botui.action.button({
-            delay: 1000,
-            action: [{
-              text: 'It\'s fine, thanks.',
-            },{
-              text: 'It is a little strange.',
-            },{
-              text: 'It\'s OK.',
-            }]
-          })//.then(function (){
-          //   role_setting()
-          // })
-    })
+    }).then(function () { // wait till its shown
+      return botui.action.text({ // show 'text' action
+        action: {
+          placeholder: 'Your Response'
+        }
+      })
+    }).then(async function (res) { // get the result
+      user_response = res.value
+      const ignore = await botui.message.add({
+        loading: true,
+        delay: 1000,
+        type: 'text',
+        content: await get_response(user_response).then(function (response) {
+          return response.json();
+        }).then(function (text) {
+          // console.log('POST response:');
+          // console.log(text.response);
+          return text.ai_response 
+        })
+      })
+  })
 };
 
-fetch('http://127.0.0.1:5000/aiResponse', {
+async function get_response(query){
+  
+  return fetch('http://127.0.0.1:5000/aiResponse', {
     method: 'POST',
     headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
     },
-    body: JSON.stringify({ "query": "I feel sad" })
-}).then(function (response) {
-  return response.json();
-}).then(function (text) {
-  console.log('POST response:');
-  console.log(text.response); 
-});
+    body: JSON.stringify({ "query": query })
+    })
+}
+
+
+console.log(get_response("Hi, I feel sad"));
 
 greet()
 
