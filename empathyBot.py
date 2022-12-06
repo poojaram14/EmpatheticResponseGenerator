@@ -17,7 +17,9 @@ import pandas as pd
 class EmpathyResponse:
     def __init__(self):
         self.tokenizer = AutoTokenizer.from_pretrained("microsoft/GODEL-v1_1-base-seq2seq")
-        self.model = AutoModelForSeq2SeqLM.from_pretrained("microsoft/GODEL-v1_1-base-seq2seq")
+        self.model = AutoModelForSeq2SeqLM.from_pretrained("microsoft/GODEL-v1_1-base-seq2seq") 
+
+        
         self.history = ['hi']
         # mi_raw = pd.read_csv("MI_data\dataset.csv")
         # mi_cleaned = mi_raw[['topic','interlocutor','utterance_text']]
@@ -31,6 +33,7 @@ class EmpathyResponse:
         dialog = ' EOS '.join(dialog)
         query = f"{instruction} [CONTEXT] {dialog} {knowledge}"
 
+        
         input_ids = self.tokenizer(f"{query}", return_tensors="pt").input_ids
         outputs = self.model.generate(input_ids, min_length=int(
             min_length), max_length=int(max_length), top_p=top_p, do_sample=True)
@@ -39,20 +42,26 @@ class EmpathyResponse:
 
 
     def predict(self,query):
-        dialog = [
-            query
-        ]
+        # dialog = [
+        #     query
+        # ]
         instruction = 'given a conversation, you need to give the next empathetic response.'
         # instruction = raw_instruction + self.history
-        min_length = 8
-        max_length = 64
+        min_length = 4
+        max_length = 12
         top_p = 0.9
-        knowledge = ''.join(self.history)
+        knowledge = ""
         self.history.append(query)
+        if len(self.history) > 2:
+            dialog = self.history[-2:]
+        else:
+            dialog = [query]
+            
         response = self.generate(instruction, knowledge, dialog,
                             top_p, min_length, max_length)
         
-
+        
+        
         print("conversation history: ",self.history)
         # return response
 
