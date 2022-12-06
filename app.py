@@ -1,29 +1,42 @@
-#import libraries
-import numpy as np
-from flask import Flask, request, jsonify, render_template
-import pickle
+#import required libraries
+from flask import Flask, request, render_template, jsonify
+import json
+from flask_cors import cross_origin
+# from backend.empathyBot import EmpathyResponse
+from backend.empathyBot import EmpathyResponse
 
-#Initialize the flask App
+empathic_ai = EmpathyResponse()
 app = Flask(__name__)
-model = pickle.load(open('model.pkl', 'rb'))
+cross_origin(app)
+#instantiate flask
 
-#default page of our web-app
 @app.route('/')
-def home():
-    return render_template('index.html')
+def hello():
+    return render_template('home.html')
 
-#To use the predict button in our web-app
-@app.route('/predict',methods=['POST'])
-
+@app.route('/predict', methods=['POST'])
 def predict():
-    '''
-    For rendering results on HTML GUI
-    '''
-    # int_features = [float(x) for x in request.form.values()]
-    input_text = request.form.values()
-    prediction = model.predict(input_text)
+     json_ = request.json
+     query = (json_)
+     prediction = empathic_ai.predict(query)
+     return jsonify({'prediction': list(prediction)})
+     
+# geting and sending response to dialogflow
+@app.route('/webhook', methods=['GET' , 'POST'])
+@cross_origin()
+def webhook():
+    req = request.get_json(silent=True, force=True)
+    query = req["queryResult"]
+    query1 = query["queryText"]
+    print(query1)
 
-    return render_template('index.html', prediction_text='Response text : {}'.format(prediction))
+    fulfillmentText = empathic_ai.predict(query1)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+    return {
+        "fulfillmentText": fulfillmentText
+        # "fulfillmentText": "Response coming from webhook"
+    }
+
+if __name__ == '__main__':
+    app.debug = True
+    app.run()
